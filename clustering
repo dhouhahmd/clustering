@@ -1,0 +1,44 @@
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.cluster import KMeans
+
+# Données des sites web
+data = [
+    {'URL': 'http://elbalad.news', 
+     'Contenu': 'بمناسبة اليوم العالمى للحماية المدنية، تسلم اللواء أحمد راشد محافظ الجيزة درع تكريم من الإدارة العامة للحماية المدنية وذلك نظير مجهوداته لدعم منظومة العمل بالمحافظة.',
+     'Titre': 'elbalad news',
+     'Date': '11/03/2023'},
+    {'URL': 'http://ebaladtv.net', 
+     'Contenu': 'ومثلت مبيعات هيونداي أيونيك 5 في أغسطس الماضي حوالي 2.4% من إجمالي مبيعات هيونداي وسبب الانخفاض هو نقص الإمدادات التي تؤثر على الإنتاج، وحتى الآن تجاوزت مبيعات السيارة في أمريكا 17 ألف سيارة أي حوالي 3.7% من المبيعات الإجمالية، ولا يزال الطراز الكوري الجنوبي على المسار الصحيح ليتجاوز 25 ألف سيارة يتم بيعها في أمريكا.', 
+     'Titre': 'ebaladtv.net', 
+     'Date': '12/2/2024'}
+]
+
+# Création d'un DataFrame pandas
+df = pd.DataFrame(data)
+
+# Écrire les données dans un fichier CSV
+df.to_csv('donnees_sites_web.csv', index=False)
+
+# Vectorisation des fonctionnalités textuelles
+vectorizer = TfidfVectorizer(stop_words='english')
+X = vectorizer.fit_transform(df['Contenu'])
+
+# Clustering des pages web
+kmeans = KMeans(n_clusters=2)
+kmeans.fit(X)
+
+# Ajouter les labels de cluster au DataFrame
+df['Cluster'] = kmeans.labels_
+
+# Affichage des résultats
+print(df)
+
+# Affichage des mots-clés importants par cluster
+print("\nMots-clés importants par cluster:")
+order_centroids = kmeans.cluster_centers_.argsort()[:, ::-1]
+terms = vectorizer.get_feature_names_out()
+for i in range(2):
+    print(f"Cluster {i}:")
+    for ind in order_centroids[i, :10]:
+        print(f"{terms[ind]}")
